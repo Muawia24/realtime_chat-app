@@ -1,10 +1,13 @@
 import express from 'express';
-import mongoose from 'mongoose';
+
 import dotenv from 'dotenv';
-import process from 'process';
+import process, { send } from 'process';
 import cors from 'cors';
 import { Server } from 'socket.io';
 import http from 'http';
+import router from './routes/index.js';
+import DB from './config/db.js';
+import { timeStamp } from 'console';
 
 dotenv.config();
 
@@ -12,9 +15,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-.then(() => console.log('MongoDB connected!'))
-.catch((err) => console.log(err));
+app.use('/api', router);
+
+DB.connect();
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -28,9 +31,20 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
 
+    socket.on('join_room', (room) => {
+        socket.join(room);
+        console.log(`User: ${socket.id} joined room ${room}`);
+    })
+
     socket.on('send_message', (data) => {
-        console.log(`sent: ${data.message}`);
-        io.emit("receive_message", data);
+        DB.saveMessage(data);
+        console.log(`Message received: ${data.message}`);
+        io.to(data.room).emit("receive_message", {
+            send: data.senderId,
+            content: data.content,
+            room: data.room,
+            timeStamp: new Date(),
+        });
     });
     socket.on('disconnect', () => {
         console.log('User disconnected');
