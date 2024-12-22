@@ -24,9 +24,19 @@ export default class UsersController {
             const hashedPwd = await bcrypt.hash(password, 10);
 
             const newUser = new User({ name, email, password: hashedPwd });
+            if (!newUser) {
+                return res.status(400).json({ message: 'Invalid user data' });
+            }
             await newUser.save();
 
-            return res.status(201).json({ message: 'User registered successfully' });
+            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+            return res.status(201).json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                token: token,
+            });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: "Server Error" });
@@ -47,7 +57,12 @@ export default class UsersController {
 
             const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-            return res.json({ token });
+            return res.status(201).json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                token: token,
+            });
         } catch(error) {
             console.error(error);
             return res.status(500).json({ error: "Server Error" });

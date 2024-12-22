@@ -1,14 +1,19 @@
 import mongoose from 'mongoose';
-import Message from '../models/Message';
+import Message from '../models/Message.js';
 
 class DB {
     async connect() {
-        mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-        .then(() => console.log('MongoDB connected!'))
-        .catch((error) => {
-            console.error('MongoDB Connection Failed:', error.message);
+        console.log('Hiiiiii');
+        try {
+            await mongoose.connect(process.env.MONGO_URI, { 
+                useNewUrlParser: true, 
+                useUnifiedTopology: true 
+            });
+            console.log('MongoDB connected!');
+        } catch (error) {
+            console.error('MongoDB connection failed:', error.message);
             process.exit(1);
-        });
+        }
     }
 
     async saveMessage(data) {
@@ -23,4 +28,6 @@ class DB {
     }
 }
 
-export default DB; 
+const db = new DB();
+
+export default db; 

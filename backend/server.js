@@ -6,7 +6,7 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 import http from 'http';
 import router from './routes/index.js';
-import DB from './config/db.js';
+import db from './config/db.js';
 import { timeStamp } from 'console';
 
 dotenv.config();
@@ -17,7 +17,7 @@ app.use(cors());
 
 app.use('/api', router);
 
-DB.connect();
+await db.connect();
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -31,16 +31,26 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    socket.on('join_room', (room) => {
+    socket.on('join_room', async ({ username, room }) => {
         socket.join(room);
         console.log(`User: ${socket.id} joined room ${room}`);
-    })
+
+        const messages = await Message.find({ room }).sort({ timestamp: 1 });
+        socket.emit('previousMessages', messages);
+
+        socket.to(room).emit('message', {
+            sender: 'System',
+            content: `${username} has joined the chat`,
+            room: room,
+            timestamp: new Date(),
+        });
+    });
 
     socket.on('send_message', (data) => {
         DB.saveMessage(data);
         console.log(`Message received: ${data.message}`);
         io.to(data.room).emit("receive_message", {
-            send: data.senderId,
+            sender: data.senderId,
             content: data.content,
             room: data.room,
             timeStamp: new Date(),

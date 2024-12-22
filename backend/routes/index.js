@@ -4,8 +4,8 @@ import MessageController from "../controllers/messageController.js";
 
 const router = express.Router();
 
-router.post('/register', UsersController.postNew);
-router.post('/login', UsersController.logMe);
+router.post('/auth/register', UsersController.postNew);
+router.post('/auth/login', UsersController.logMe);
 
 router.get('/chat/:room', MessageController.getRoom);
 
