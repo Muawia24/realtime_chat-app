@@ -29,12 +29,12 @@ export default class UsersController {
             }
             await newUser.save();
 
-            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+            const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
             return res.status(201).json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
+                _id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
                 token: token,
             });
         } catch (error) {
@@ -46,14 +46,17 @@ export default class UsersController {
     static async logMe(req, res) {
         const { email, password } = req.body;
         try {
+            console.log(email);
             const user = await User.findOne({ email });
             if (!user) {
+                console.log('no user found');
                 return res.status(401).json({ error: "Invalid email or password" });
             }
             const isMatch = await bcrypt.compare(password, user.password)
             if (!isMatch) {
                 return res.status(401).json({ error: "Invalid email or password" });
             }
+            console.log(isMatch);
 
             const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 

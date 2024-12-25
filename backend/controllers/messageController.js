@@ -4,13 +4,17 @@ import ChatRoom from "../models/ChatRoom.js";
 export default class MessageController {
     static async newRoom(req, res) {
         try {
-            const { name, participants, isGroup, admin } = req.body;
+            const { name } = req.body;
+
+            const existingRoom = await ChatRoom.findOne({ name });
+            if (existingRoom) {
+                return res.status(400).json({ message: 'Chat room already exists' });
+            }
 
             const newRoom = new ChatRoom({
                 name,
-                participants,
-                isGroup,
-                admin: isGroup ? admin : undefined,
+                users: req.user._id,
+                admin: req.user._id,
             });
             const savedRoom = await newRoom.save();
             return res.status(201).json(savedRoom);
@@ -23,8 +27,8 @@ export default class MessageController {
 
     static async getUserRooms (req, res) {
         try {
-            const userId = req.params.userId
-            const userRooms = await ChatRoom.find({ participants: userId });
+            const userId = req.user._id;
+            const userRooms = await ChatRoom.find({ users: userId });
 
             return res.status(200).json(userRooms);
         } catch (error) {
@@ -38,7 +42,7 @@ export default class MessageController {
         const roomId = req.params.roomId;
 
         try {
-            const updatedRoom = await ChatRoom.findByIdAndUpdate(roomId, { participants }, { new: true });
+            const updatedRoom = await ChatRoom.findByIdAndUpdate(roomId, { users }, { new: true });
             return res.status(201).json(updatedRoom);
         } catch (error) {
             console.error(error);

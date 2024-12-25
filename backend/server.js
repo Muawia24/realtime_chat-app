@@ -47,7 +47,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('send_message', (data) => {
-        DB.saveMessage(data);
+        db.saveMessage(data);
         console.log(`Message received: ${data.message}`);
         io.to(data.room).emit("receive_message", {
             sender: data.senderId,

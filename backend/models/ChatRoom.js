@@ -3,9 +3,8 @@ import mongoose from "mongoose";
 const ChatRoomSchema = new mongoose.Schema(
     {
     name: { type: String, required: true },
-    isGroup: { type: Boolean, default: false },
-    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'User' , required: true},
 },
 { timestamps: true }
 );

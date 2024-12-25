@@ -6,9 +6,16 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const { login } = useContext(AuthContext);
 
+    console.log("AuthContext login function:", login);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await login(email, password);
+        try {
+            console.log();
+            await login(email, password);
+        } catch (error) {
+            console.error('Login failed:', error.response?.data?.message || error.message);
+        }
     }
 
     return (

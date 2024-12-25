@@ -1,111 +1,73 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:5000');
+const socket = io('http://localhost:5000'); // Connect to backend
 
-const Chat = () => {
-    const [messages, setMessages] = useState([]);
+const ChatRoom = () => {
+    const { roomName } = useParams(); // Get the room name from the URL
+    const [userId, setUserId] = useState('');
     const [message, setMessage] = useState('');
-    const [room, setRoom] = useState('');
-    const [username, setUsername] = useState('');
-    const [notifications, setNotifications] = useState([]);
+    const [messages, setMessages] = useState([]); // Stores all messages (previous + new)
 
     useEffect(() => {
-        // Listen for incoming messages
-        socket.on('receive_message', (msg) => {
-            if (msg.room === room) {
-                setMessages((prevMessages) => [...prevMessages, msg]);
-            } else {
-                // If the message is for another room, show notification
-                setNotifications((prevNotifications) => [
-                    ...prevNotifications,
-                    `New message from ${msg.room}: ${msg.content}`,
-                ]);
-            }
+        // Retrieve username from localStorage or default to 'Anonymous'
+        const usernameFromStorage = JSON.parse(localStorage.getItem('userInfo'))?._id || 'Anonymous';
+        setUserId(usernameFromStorage);
+
+        // Join the room
+        socket.emit('joinRoom', { username: usernameFromStorage, room: roomName });
+
+        // Listen for previous messages
+        socket.on('previousMessages', (previousMessages) => {
+            setMessages(previousMessages); // Load previous messages into state
         });
 
-        socket.on('previousMessages', (previousMessages) => {
-            setMessages(previousMessages);
+        // Listen for new messages
+        socket.on('receive_message', (msg) => {
+            setMessages((prevMessages) => [...prevMessages, msg]); // Add new message to state
         });
 
         return () => {
-            socket.disconnect();
+            socket.disconnect(); // Disconnect socket on component unmount
         };
-    }, [room]);
-
-    const joinRoom = () => {
-        if (username && room) {
-            socket.emit('joinRoom', { username, room });
-        }
-    };
+    }, [roomName]);
 
     const sendMessage = () => {
         if (message) {
-            socket.emit('send_message', { sender: username, room: room, content: message });
-            setMessage(''); // Clear input field
+            socket.emit('send_message', { sender: userId, room: roomName, content: message });
+            setMessage('');
         }
     };
 
     return (
-        <div style={{ padding: '1rem' }}>
-            <h1>Chat Room</h1>
-            {!room ? (
-                <div>
-                    <input
-                        type="text"
-                        placeholder="Enter username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Enter room"
-                        value={room}
-                        onChange={(e) => setRoom(e.target.value)}
-                    />
-                    <button onClick={joinRoom}>Join Room</button>
-                </div>
-            ) : (
-                <div>
-                    {/* Notifications */}
-                    {notifications.length > 0 && (
-                        <div style={{ marginBottom: '1rem', color: 'red' }}>
-                            {notifications.map((notif, index) => (
-                                <p key={index}>{notif}</p>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Chat Messages */}
-                    <div
-                        style={{
-                            border: '1px solid #ccc',
-                            padding: '1rem',
-                            height: '300px',
-                            overflowY: 'scroll',
-                        }}
-                    >
-                        {messages.map((msg, index) => (
-                            <p key={index}>
-                                <strong>{msg.sender}: </strong>
-                                {msg.content}{' '}
-                                <small>({new Date(msg.timestamp).toLocaleTimeString()})</small>
-                            </p>
-                        ))}
-                    </div>
-
-                    {/* Input Field */}
-                    <input
-                        type="text"
-                        placeholder="Enter message"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                    />
-                    <button onClick={sendMessage}>Send</button>
-                </div>
-            )}
+        <div>
+            <h1>Room: {roomName}</h1>
+            <div
+                style={{
+                    border: '1px solid #ccc',
+                    padding: '1rem',
+                    height: '300px',
+                    overflowY: 'scroll',
+                    marginBottom: '1rem',
+                }}
+            >
+                {messages.map((msg, index) => (
+                    <p key={index}>
+                        <strong>{msg.sender}:</strong> {msg.content}{' '}
+                        <small>({new Date(msg.timestamp).toLocaleTimeString()})</small>
+                    </p>
+                ))}
+            </div>
+            <input
+                type="text"
+                placeholder="Enter your message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+            />
+            <button onClick={sendMessage}>Send</button>
         </div>
     );
 };
 
-export default Chat;
+export default ChatRoom;

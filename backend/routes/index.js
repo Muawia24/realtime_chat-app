@@ -1,12 +1,15 @@
 import express from "express";
 import UsersController from "../controllers/UserController.js";
 import MessageController from "../controllers/messageController.js";
+import protect from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 router.post('/auth/register', UsersController.postNew);
 router.post('/auth/login', UsersController.logMe);
 
-router.get('/chat/:room', MessageController.getRoom);
+router.get('/chatrooms', protect, MessageController.getUserRooms );
+router.post('/chatrooms', protect, MessageController.newRoom);
+//router.get('/chat/:room', MessageController.getRoom);
 
 export default router;
