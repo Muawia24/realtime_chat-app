@@ -1,5 +1,6 @@
 import Message from "../models/Message.js";
 import ChatRoom from "../models/ChatRoom.js";
+import User from "../models/User.js";
 
 export default class MessageController {
     static async newRoom(req, res) {
@@ -39,21 +40,21 @@ export default class MessageController {
 
     static async addUserToRoom(req, res) {
         const { roomName }  = req.params;
-        console.log('roomparam:', roomName);
         const { userId } = req.body;
 
         try {
             const room = await ChatRoom.findOne({ name: roomName });
-            console.log('heeeere');
-            console.log('found room:', room);
-
+            const newUser = await User.findOne({ _id: userId });
+            if (!newUser) {
+                return res.status(404).json({ message: 'User not found' });
+            }
             if (room.users.includes(userId)) {
                 return res.status(400).json({ message: 'User is already in the chatroom' });
             }
             room.users.push(userId);
             await room.save();
 
-            return res.status(200).json({ message: 'User added to room', room });    
+            return res.status(200).json({ message: 'User added to room', newUser });
         } catch (error) {
             console.log(error);
             return res.status(500).json({ message: 'Failed to update room members'});
