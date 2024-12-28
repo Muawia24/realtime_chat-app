@@ -71,4 +71,26 @@ export default class UsersController {
             return res.status(500).json({ error: "Server Error" });
         }
     }
+    static async getAllUsers(req, res) {
+        try {
+            const users = await User.find({});
+            console.log(users);
+            return res.status(200).json(users);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: "Server Error" });
+        }
+    }
+    static async getRoomUsers(req, res) {
+        const users = req.body.userIds;
+        try {
+            const roomUsers = await User.find({ _id: { $in: users }});
+
+            return res.status(200).json(roomUsers);
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ error: "Server Error" });
+        }
+        
+    }
 }

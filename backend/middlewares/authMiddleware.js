@@ -12,6 +12,9 @@ const protect =  async (req, res, next) => {
             req.user = await User.findById(decodedToken.id).select('-password');
             next();
         } catch (error) {
+            if (error.name === 'TokenExpiredError'){
+                return res.status(401).json({ message: 'Token expired' });
+            }
             console.log('Auth error', error);
             return res.status(401).json({ message: 'Not authorized, token failed' });
         }

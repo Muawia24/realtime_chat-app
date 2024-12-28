@@ -7,6 +7,7 @@ import { Server } from 'socket.io';
 import http from 'http';
 import router from './routes/index.js';
 import db from './config/db.js';
+import Message from './models/Message.js';
 import { timeStamp } from 'console';
 
 dotenv.config();
@@ -32,6 +33,7 @@ io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
 
     socket.on('join_room', async ({ username, room }) => {
+        console.log(`${username} Joiend room: ${room}`)
         socket.join(room);
         console.log(`User: ${socket.id} joined room ${room}`);
 
@@ -46,13 +48,14 @@ io.on('connection', (socket) => {
         });
     });
 
-    socket.on('send_message', (data) => {
-        db.saveMessage(data);
-        console.log(`Message received: ${data.message}`);
-        io.to(data.room).emit("receive_message", {
-            sender: data.senderId,
-            content: data.content,
-            room: data.room,
+    socket.on('send_message', async ({ sender, room, content }) => {
+        console.log({ sender, room, content });
+        await db.saveMessage({ sender, room, content });
+        console.log(`Message received: ${content}`);
+        io.to(room).emit("receive_message", {
+            sender,
+            content,
+            room,
             timeStamp: new Date(),
         });
     });

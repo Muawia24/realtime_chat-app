@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import API from '../utils/api';
 
@@ -6,6 +7,7 @@ const ChatRooms = () => {
     const [chatRooms, setChatRooms] = useState([]);
     const [newRoomName, setNewRoomName] = useState('');
     const [error, setError] = useState('');
+    const { logout } = useContext(AuthContext);
     const navigate = useNavigate(); // Initialize navigate
 
     // Fetch chat rooms on load
@@ -44,9 +46,19 @@ const ChatRooms = () => {
         navigate(`/chat/${roomName}`); // Navigate to the room's chat page
     };
 
+    const handleLogout = () => {
+        logout(); // Log out the user
+        navigate('/login'); // Redirect to login page
+    };
+
     return (
         <div>
-            <h1>Your Chat Rooms</h1>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h1>Chat Rooms</h1>
+                <button onClick={handleLogout} style={{ cursor: 'pointer' }}>
+                    Log Out
+                </button>
+            </header>
 
             {/* Chat Room List */}
             <ul>

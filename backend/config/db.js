@@ -18,7 +18,7 @@ class DB {
     async saveMessage(data) {
         const newMessage = new Message(
             {
-                sender: data.senderId,
+                sender: data.sender,
                 content: data.content,
                 room: data.room
             }

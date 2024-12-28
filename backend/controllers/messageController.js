@@ -37,28 +37,69 @@ export default class MessageController {
         }
     }
 
-    static async updateRoomMembers(req, res) {
-        const { participants } = req.body;
-        const roomId = req.params.roomId;
+    static async addUserToRoom(req, res) {
+        const { roomName }  = req.params;
+        console.log('roomparam:', roomName);
+        const { userId } = req.body;
 
         try {
-            const updatedRoom = await ChatRoom.findByIdAndUpdate(roomId, { users }, { new: true });
-            return res.status(201).json(updatedRoom);
+            const room = await ChatRoom.findOne({ name: roomName });
+            console.log('heeeere');
+            console.log('found room:', room);
+
+            if (room.users.includes(userId)) {
+                return res.status(400).json({ message: 'User is already in the chatroom' });
+            }
+            room.users.push(userId);
+            await room.save();
+
+            return res.status(200).json({ message: 'User added to room', room });    
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: 'Failed to update room members'});
+            console.log(error);
+            return res.status(500).json({ message: 'Failed to update room members'});
         }
 
     }
 
     static async getRoom(req, res) {
-        const { room } = req.params.room;
         try {
-            const messages = await Message.find({ room: room }).sort({ timestamp: 1 });
-            return res.status(200).json(messages);
+            const room = await ChatRoom.findOne({ name: req.params.roomName }).select('admin name users');
+            if (!room) {
+                return res.status(404).json({ message: 'Room not found' });
+            }
+
+            return res.status(200).json(room);
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: 'Failed to fetch messages' });
+        }
+    }
+
+    static async removeUserInRoom (req, res) {
+        const { userId } = req.body;
+
+        try {
+            const room = await ChatRoom.findOne({ name: req.params.roomName });
+            console.log('heeere');
+            console.log(room);
+
+            if (!room) {
+                return res.status(404).json({ message: 'Room not found' });
+            }
+
+            // Ensure the user is actually in the room
+            if (!room.users.includes(userId)) {
+                return res.status(400).json({ message: 'User is not in the room' });
+            }
+
+            // Remove the user from the room
+            room.users = room.users.filter((id) => id.toString() !== userId);
+            await room.save();
+
+            res.status(200).json({ message: 'User removed from room', userId });
+        } catch (error) {
+            console.error('Error removing user from room:', error);
+            res.status(500).json({ message: 'Server error' });
         }
     }
 }

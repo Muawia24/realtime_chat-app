@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ChatRoom from './pages/Chat';
 import ChatRooms from './pages/ChatRooms';
+import AdminRoomManager from './pages/AddUserToRoom';
+import LogoutHandler from './pages/LogoutHandler';
 import { useContext } from 'react';
 import { AuthContext } from './context/AuthContext';
 
@@ -27,9 +29,15 @@ const App = () => {
                     {/* Protected Routes */}
                     <Route path="/chatrooms" element={user ? <ChatRooms /> : <Navigate to="/login" />} />
                     <Route path="/chat/:roomName" element={user ? <ChatRoom /> : <Navigate to="/login" />} />
+                    <Route path="/chat/:roomName/manage" element={user ? <AdminRoomManager /> : <Navigate to="/login" />} />
+
+                    
+
+                    {/* Logout Route */}
+                    <Route path="/logout" element={<LogoutHandler />} />
 
                     {/* Fallback Route */}
-                    <Route path="*" element={<Navigate to={user ? "/chat" : "/login"} />} />
+                    <Route path="*" element={<Navigate to={user ? "/chatrooms" : "/login"} />} />
                 </Routes>
             </div>
         </Router>
