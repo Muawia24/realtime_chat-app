@@ -122,7 +122,7 @@ export default class MessageController {
                 return res.status(404).json({ message: 'Room not found' });
             }
     
-            if (message.sender.toString() !== userId.toString() && room.admin.toString() !== userId.toString()) {
+            if (room.admin.toString() !== userId.toString()) {
                 return res.status(403).json({ message: 'You do not have permission to delete this message' });
             }
     

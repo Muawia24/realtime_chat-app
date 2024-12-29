@@ -18,12 +18,15 @@ class DB {
     async saveMessage(data) {
         const newMessage = new Message(
             {
+                username: data.username,
                 sender: data.sender,
                 content: data.content,
                 room: data.room
             }
         );
-        await newMessage.save();
+        const savedMessage = await newMessage.save();
+
+        return savedMessage;
     }
 }
 

@@ -48,16 +48,13 @@ io.on('connection', (socket) => {
         });
     });
 
-    socket.on('send_message', async ({ sender, room, content }) => {
-        console.log({ sender, room, content });
-        await db.saveMessage({ sender, room, content });
-        console.log(`Message received: ${content}`);
-        io.to(room).emit("receive_message", {
-            sender,
-            content,
-            room,
-            timeStamp: new Date(),
-        });
+    socket.on('send_message', async (msg) => {
+        const savedMessage = await db.saveMessage(msg);
+        io.to(msg.room).emit("receive_message", savedMessage);
+    });
+
+    socket.on('delete_message', (messageId) => {
+        socket.emit('delete_message1', messageId)
     });
     socket.on('disconnect', () => {
         console.log('User disconnected');
