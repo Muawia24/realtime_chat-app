@@ -16,5 +16,6 @@ router.post('/chatrooms', protect, MessageController.newRoom);
 router.get('/chatrooms/:roomName', protect, MessageController.getRoom);
 router.post('/chatrooms/:roomName/addUserToRoom', protect, isRoomAdmin, MessageController.addUserToRoom);
 router.post(`/chatrooms/:roomName/removeUser`, protect, isRoomAdmin, MessageController.removeUserInRoom);
+router.delete('/messages/:messageId', protect, MessageController.messageDelete);
 
 export default router;

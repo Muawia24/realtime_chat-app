@@ -103,4 +103,35 @@ export default class MessageController {
             res.status(500).json({ message: 'Server error' });
         }
     }
+
+    static async messageDelete(req, res) {
+        try {
+            const { messageId } = req.params;
+            const userId = req.user._id; // Get the logged-in user's ID
+    
+            // Find the message
+            const message = await Message.findOne({ _id: messageId });
+            console.log('here', message);
+            if (!message) {
+                return res.status(404).json({ message: 'Message not found' });
+            }
+    
+            // Ensure the user is either the sender or an admin of the room
+            const room = await ChatRoom.findOne({ name: message.room });
+            if (!room) {
+                return res.status(404).json({ message: 'Room not found' });
+            }
+    
+            if (message.sender.toString() !== userId.toString() && room.admin.toString() !== userId.toString()) {
+                return res.status(403).json({ message: 'You do not have permission to delete this message' });
+            }
+    
+            // Delete the message
+            await message.deleteOne();
+            res.status(200).json({ message: 'Message deleted successfully', messageId });
+        } catch (error) {
+            console.error('Error deleting message:', error);
+            res.status(500).json({ message: 'Server error' });
+        }
+    }
 }
