@@ -1,6 +1,20 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import {
+    Box,
+    AppBar,
+    Toolbar,
+    Typography,
+    Button,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemText,
+    TextField,
+    Alert,
+} from '@mui/material';
+
 import API from '../utils/api';
 
 const ChatRooms = () => {
@@ -52,46 +66,66 @@ const ChatRooms = () => {
     };
 
     return (
-        <div>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h1>Chat Rooms</h1>
-                <button onClick={handleLogout} style={{ cursor: 'pointer' }}>
-                    Log Out
-                </button>
-            </header>
+        <Box sx={{ padding: 2 }}>
+            {/* Header */}
+            <AppBar position="static" sx={{ marginBottom: 3 }}>
+                <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="h6">Chat Rooms</Typography>
+                    <Button color="inherit" onClick={handleLogout}>
+                        Log Out
+                    </Button>
+                </Toolbar>
+            </AppBar>
 
             {/* Chat Room List */}
-            <ul>
+            <Typography variant="h5" gutterBottom>
+                Available Chat Rooms
+            </Typography>
+            <List>
                 {chatRooms.map((room) => (
-                    <li key={room._id}>
-                        <button
-                            onClick={() => joinRoom(room.name)}
-                            style={{
-                                cursor: 'pointer',
-                                background: 'none',
-                                border: 'none',
-                                color: 'blue',
-                                textDecoration: 'underline',
-                            }}
-                        >
-                            {room.name}
-                        </button>
-                    </li>
+                    <ListItem key={room._id} disablePadding>
+                        <ListItemButton onClick={() => joinRoom(room.name)}>
+                            <ListItemText primary={room.name} />
+                        </ListItemButton>
+                    </ListItem>
                 ))}
-            </ul>
+            </List>
 
             {/* Create New Chat Room */}
-            <div>
-                <input
-                    type="text"
-                    placeholder="Enter new room name"
-                    value={newRoomName}
-                    onChange={(e) => setNewRoomName(e.target.value)}
-                />
-                <button onClick={createChatRoom}>Create Room</button>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-            </div>
-        </div>
+            <Box sx={{ marginTop: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                    Create a New Chat Room
+                </Typography>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        gap: 2,
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                    }}
+                >
+                    <TextField
+                        label="New Room Name"
+                        variant="outlined"
+                        value={newRoomName}
+                        onChange={(e) => setNewRoomName(e.target.value)}
+                        sx={{ flexGrow: 1, minWidth: 200 }}
+                    />
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={createChatRoom}
+                    >
+                        Create Room
+                    </Button>
+                </Box>
+                {error && (
+                    <Alert severity="error" sx={{ marginTop: 2 }}>
+                        {error}
+                    </Alert>
+                )}
+            </Box>
+        </Box>
     );
 };
 

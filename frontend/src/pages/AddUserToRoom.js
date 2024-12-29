@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+    Box,
+    Typography,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemSecondaryAction,
+    IconButton,
+    MenuItem,
+    Select,
+    Button,
+    Alert,
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import API from '../utils/api';
 
 const AdminRoomManager = () => {
@@ -8,6 +23,7 @@ const AdminRoomManager = () => {
     const [selectedUser, setSelectedUser] = useState('');
     const [message, setMessage] = useState('');
     const { roomName } = useParams();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchRoomUsers = async () => {
@@ -37,11 +53,12 @@ const AdminRoomManager = () => {
 
     const handleAddUser = async () => {
         try {
-            const room = await API.get(`/chatrooms/${roomName}`);
-            const userIds = room.data.users;
-
-            const { data } = await API.post(`/chatrooms/${roomName}/addUserToRoom`, { userId: selectedUser, roomName });
+            const { data } = await API.post(`/chatrooms/${roomName}/addUserToRoom`, { userId: selectedUser});
+            const userIds = data.users;
+            const roomUsers = await API.post('/roomusers', { userIds });
+            console.log('new user:', data.newUser);
             setUsers((prevUsers) => [...prevUsers, data.newUser]);
+    
             setMessage('User added successfully!');
             setSelectedUser('');
         } catch (error) {
@@ -67,47 +84,73 @@ const AdminRoomManager = () => {
     //console.log(users.map(user => user));
 
     return (
-        <div>
-            <h1>Manage Room: {roomName}</h1>
+        <Box sx={{ padding: 2 }}>
+            <Typography variant="h4" gutterBottom>
+                Manage Room: {roomName}
+            </Typography>
 
             {/* Current Users */}
-            <h3>Users in this Room:</h3>
-            <ul>
-            {users.map((user) => (
-                    <li key={user._id} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>{user.name}</span>
-                        <button
-                            onClick={() => handleRemoveUser(user._id)}
-                            style={{
-                                backgroundColor: '#ff4d4d',
-                                color: 'white',
-                                border: 'none',
-                                padding: '5px 10px',
-                                cursor: 'pointer',
-                                borderRadius: '4px',
-                            }}
-                        >
-                            Remove
-                        </button>
-                    </li>
+            <Typography variant="h6" gutterBottom>
+                Users in this Room:
+            </Typography>
+            <List>
+                {users.map((user) => (
+                    <ListItem
+                        key={user._id}
+                        secondaryAction={
+                            <IconButton
+                                edge="end"
+                                color="error"
+                                onClick={() => handleRemoveUser(user._id)}
+                            >
+                                <DeleteIcon />
+                            </IconButton>
+                        }
+                    >
+                        <ListItemText primary={user.name} />
+                    </ListItem>
                 ))}
-            </ul>
+            </List>
 
             {/* Add New Users */}
-            <h3>Add a User:</h3>
-            <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)}>
-                <option value="">Select a user</option>
-                {allUsers
-                    .filter((user) => !users.some((u) => u._id === user._id)) // Exclude users already in the room
-                    .map((user) => (
-                        <option key={user._id} value={user._id}>
-                            {user.name}
-                        </option>
-                    ))}
-            </select>
-            <button onClick={handleAddUser}>Add User</button>
-            {message && <p>{message}</p>}
-        </div>
+            <Typography variant="h6" gutterBottom sx={{ marginTop: 3 }}>
+                Add a User:
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Select
+                    value={selectedUser}
+                    onChange={(e) => setSelectedUser(e.target.value)}
+                    displayEmpty
+                    sx={{ minWidth: 200 }}
+                >
+                    <MenuItem value="" disabled>
+                        Select a user
+                    </MenuItem>
+                    {allUsers
+                        .filter((user) => !users.some((u) => u._id === user._id)) // Exclude existing users
+                        .map((user) => (
+                            <MenuItem key={user._id} value={user._id}>
+                                {user.name}
+                            </MenuItem>
+                        ))}
+                </Select>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddCircleOutlineIcon />}
+                    onClick={handleAddUser}
+                >
+                    Add User
+                </Button>
+            </Box>
+
+            {/* Feedback Message */}
+            {message && (
+                <Alert severity={message.includes('success') ? 'success' : 'error'} sx={{ marginTop: 2 }}>
+                    {message}
+                </Alert>
+            )}
+        </Box>
     );
 };
 

@@ -8,6 +8,7 @@ import AdminRoomManager from './pages/AddUserToRoom';
 import LogoutHandler from './pages/LogoutHandler';
 import { useContext } from 'react';
 import { AuthContext } from './context/AuthContext';
+import Header from './Header';
 
 const App = () => {
     const { loading, user } = useContext(AuthContext); // Get the authenticated user
@@ -19,8 +20,10 @@ const App = () => {
 
     return (
         <Router>
+
             <div>
                 <h1>Real-Time Chat App</h1>
+                <Header />
                 <Routes>
                     {/* Public Routes */}
                     <Route path="/login" element={!user ? <Login /> : <Navigate to="/chatrooms" />} />
