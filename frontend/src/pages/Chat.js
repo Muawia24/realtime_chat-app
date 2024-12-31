@@ -12,7 +12,9 @@ import {
     IconButton,
     Menu,
     MenuItem,
+    Alert,
   } from '@mui/material';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -26,6 +28,9 @@ const ChatRoom = () => {
     const [messages, setMessages] = useState([]); // Stores all messages (previous + new)
     const [anchorEl, setAnchorEl] = useState(null);
     const [dropdownVisible, setDropdownVisible] = useState(null);
+    const [open, setOpen] = useState(false);
+    const [error, setError] = useState('');
+    const [file, setFile] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -71,6 +76,11 @@ const ChatRoom = () => {
             );
         });
 
+        socket.on('user_left', (msg) => {
+            
+            setMessages((prevMessages) => [...prevMessages, msg.content]);
+        })
+
         
 
         return () => {
@@ -81,14 +91,31 @@ const ChatRoom = () => {
         };
     }, [roomName]);
 
-    const sendMessage = () => {
-        if (message) {
-            const userId = JSON.parse(localStorage.getItem('userInfo'))?._id;
-            const username = JSON.parse(localStorage.getItem('userInfo')).name;
-            console.log('sending triggers');
-            socket.emit('send_message', { sender: userId, room: roomName, content: message , username: username});
-            setMessage('');
-        }
+    const sendMessage = async () => {
+        if (message || file) {
+            const user = JSON.parse(localStorage.getItem('userInfo'));
+            const formData = new FormData();
+            formData.append('room', roomName);
+            formData.append('sender', user._id);
+            formData.append('username', user.name)
+            if (message) formData.append('content', message);
+            if (file) formData.append('file', file);
+            try {
+                const { data } = await API.post(`/chatrooms/${roomName}/messages`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+                socket.emit('sendMessage', data); // Emit the new message to the server
+                setMessages((prevMessages) => [...prevMessages, data]); // Optimistically update the UI
+                setMessage('');
+                setFile(null);
+            } catch (err) {
+                console.error('Error sending message:', err);
+            }
+        } 
+    };
+
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
     };
 
     const handleManageRoom = () => {
@@ -108,6 +135,29 @@ const ChatRoom = () => {
           console.error('Error deleting message:', error);
         }
       };
+    
+    const handleExitRoom = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('userInfo'));
+            const msg = {
+                username: 'System',
+                room: roomName,
+                content: `${user.name} has left the room.`,
+                timestamp: new Date(),
+            };
+
+            await API.post(`/chatrooms/${roomName}/exit`, { userId: user._id }); // Call API to remove the user
+            socket.emit('leave_room', { room: roomName, msg: msg }); // Notify the backend via socket
+            navigate('/chatrooms'); // Redirect to chatrooms page
+        } catch (err) {
+            setError('Failed to exit the room. Please try again.');
+            console.error(err);
+        }
+    };
+    const handleConfirmExit = () => {
+        setOpen(false);
+        handleExitRoom();
+    };
 
       return (
         <Box sx={{ padding: 2 }}>
@@ -125,6 +175,23 @@ const ChatRoom = () => {
                 >
                     Manage Room
                 </Button>
+            )}
+
+            {/* Exit Room Button */}
+            <Button
+                variant="outlined"
+                color="error"
+                onClick={handleConfirmExit}
+                sx={{ marginBottom: 2, marginLeft: 2 }}
+            >
+                Exit Room
+            </Button>
+
+            {/* Error Message */}
+            {error && (
+                <Alert severity="error" sx={{ marginTop: 2 }}>
+                    {error}
+                </Alert>
             )}
 
             {/* Messages Section */}
@@ -153,6 +220,11 @@ const ChatRoom = () => {
                             <strong>{msg.username}:</strong> {msg.content}{' '}
                             <small>({new Date(msg.timestamp).toLocaleTimeString()})</small>
                         </Typography>
+                        {msg.fileUrl && (
+                            <a href={`http://localhost:5000${msg.fileUrl}`} target="_blank" rel="noopener noreferrer">
+                                View File
+                            </a>
+                        )}
 
                         {/* Three Dots Menu */}
                         {isAdmin && (
@@ -199,6 +271,10 @@ const ChatRoom = () => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                 />
+                 <IconButton component="label">
+                    <AttachFileIcon />
+                    <input type="file" hidden onChange={handleFileChange} />
+                </IconButton>
                 <Button
                     variant="contained"
                     color="primary"

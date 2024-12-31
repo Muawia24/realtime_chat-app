@@ -1,6 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Box, Typography, TextField, Button, Paper, Alert, Link } from '@mui/material';
+
 
 const Register = () => {
     const [name, setName] = useState('');
@@ -21,43 +23,89 @@ const Register = () => {
     };
 
     return (
-        <div style={{ maxWidth: '400px', margin: 'auto', padding: '1rem' }}>
-            <h1>Register</h1>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Name</label>
-                    <input
-                        type="text"
-                        placeholder="Enter your name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Email</label>
-                    <input
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Password</label>
-                    <input
-                        type="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
-                <button type="submit">Register</button>
-            </form>
-        </div>
+        <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100vh',
+                backgroundColor: '#f5f5f5',
+            }}
+        >
+            <Paper
+                elevation={3}
+                sx={{
+                    padding: 4,
+                    borderRadius: 2,
+                    maxWidth: 400,
+                    width: '100%',
+                    textAlign: 'center',
+                }}
+            >
+                <Typography variant="h4" gutterBottom>
+                    Register
+                </Typography>
+
+                {/* Error Message */}
+                {error && (
+                    <Alert severity="error" sx={{ marginBottom: 2 }}>
+                        {error}
+                    </Alert>
+                )}
+
+                {/* Form */}
+                <form onSubmit={handleSubmit}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <TextField
+                            label="Name"
+                            variant="outlined"
+                            placeholder="Enter your name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                        />
+                        <TextField
+                            label="Email"
+                            variant="outlined"
+                            type="email"
+                            placeholder="Enter your email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                        <TextField
+                            label="Password"
+                            variant="outlined"
+                            type="password"
+                            placeholder="Enter your password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            sx={{ paddingY: 1.5 }}
+                        >
+                            Register
+                        </Button>
+                    </Box>
+                    <Typography variant="body2" sx={{ marginTop: 2 }}>
+                        Already have an account?{' '}
+                        <Link
+                            component="button"
+                            variant="body2"
+                            onClick={() => navigate('/login')}
+                            sx={{ color: 'primary.main' }}
+                        >
+                            Login Here
+                        </Link>
+                    </Typography>
+                </form>
+            </Paper>
+        </Box>
     );
 };
 
