@@ -104,6 +104,29 @@ export default class MessageController {
         }
     }
 
+    static async newMessage(req, res) {
+        const { roomName } = req.params;
+        const { sender, content, username } = req.body;
+        const fileUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+        try {
+            // Save the message to the database
+            const message = await Message.create({
+                room: roomName,
+                sender,
+                username,
+                content,
+                fileUrl,
+                timestamp: new Date(),
+            });
+
+           return res.status(201).json(message);
+        } catch (error) {
+            console.error('Error saving message:', error);
+            return res.status(500).json({ error: 'Failed to save message' });
+        }
+    }
+
     static async messageDelete(req, res) {
         try {
             const { messageId } = req.params;
@@ -132,6 +155,30 @@ export default class MessageController {
         } catch (error) {
             console.error('Error deleting message:', error);
             res.status(500).json({ message: 'Server error' });
+        }
+    }
+
+    static async exitRoom(req, res) {
+        const { roomName } = req.params;
+        const { userId } = req.body;
+
+        try {
+            // Find the chatroom and update the members list
+            const room = await ChatRoom.findOneAndUpdate(
+                { name: roomName },
+                { $pull: { users: userId } }, // Remove the user from the members array
+                { new: true }
+            );
+            console.log(room);
+
+            if (!room) {
+                return res.status(404).json({ message: 'Room not found' });
+            }
+
+            return res.status(200).json({ message: 'Exited room successfully', room });
+        } catch (error) {
+            console.error('Error exiting room:', error);
+            return res.status(500).json({ message: 'Failed to exit the room' });
         }
     }
 }

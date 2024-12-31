@@ -1,6 +1,7 @@
 import express from 'express';
 
 import dotenv from 'dotenv';
+import path from 'path';
 import process, { send } from 'process';
 import cors from 'cors';
 import { Server } from 'socket.io';
@@ -9,12 +10,17 @@ import router from './routes/index.js';
 import db from './config/db.js';
 import Message from './models/Message.js';
 import { timeStamp } from 'console';
+import { fileURLToPath } from 'url'
 
 dotenv.config();
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(express.json());
 app.use(cors());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api', router);
 
@@ -42,20 +48,28 @@ io.on('connection', (socket) => {
 
         socket.to(room).emit('message', {
             sender: 'System',
-            content: `${username} has joined the chat`,
+            content: `${username} has joined the room`,
             room: room,
             timestamp: new Date(),
         });
     });
 
     socket.on('send_message', async (msg) => {
-        const savedMessage = await db.saveMessage(msg);
-        io.to(msg.room).emit("receive_message", savedMessage);
+        io.to(msg.room).emit("receive_message", msg);
     });
 
     socket.on('delete_message', (messageId) => {
         socket.emit('delete_message1', messageId)
     });
+
+    socket.on('leave_room', async ({ room, msg }) => {
+        socket.leave(room);
+        const savedMessage = await db.saveMessage(msg);
+        console.log(`User ${savedMessage.username} left room ${room}`);
+        // Notify other users in the room
+        socket.to(room).emit('user_left', { savedMessage });
+    });
+
     socket.on('disconnect', () => {
         console.log('User disconnected');
     });
