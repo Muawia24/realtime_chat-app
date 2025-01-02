@@ -53,7 +53,7 @@ const MessageList = ({ messages, isAdmin, socket }) => {
                         <Typography variant="body1">{msg.content}</Typography>
                         {msg.fileUrl && (
                             <a
-                                href={msg.fileUrl}
+                                href={`http://localhost:5000${msg.fileUrl}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{ color: 'blue', textDecoration: 'underline' }}

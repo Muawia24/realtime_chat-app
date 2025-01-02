@@ -16,6 +16,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import API from '../utils/api';
+import { socket } from './Chat';
 
 const AdminRoomManager = () => {
     const [users, setUsers] = useState([]);
@@ -56,11 +57,19 @@ const AdminRoomManager = () => {
             const { data } = await API.post(`/chatrooms/${roomName}/addUserToRoom`, { userId: selectedUser});
             const userIds = data.users;
             const roomUsers = await API.post('/roomusers', { userIds });
+            const msg = {
+                username: 'system',
+                content: `Admin added ${data.newUser.name} to this room`,
+                room: roomName,
+            }
             console.log('new user:', data.newUser);
             setUsers((prevUsers) => [...prevUsers, data.newUser]);
     
             setMessage('User added successfully!');
             setSelectedUser('');
+
+            socket.emit('add_user', { msg });
+
         } catch (error) {
             setMessage('User already exists');
             console.log(error);
@@ -126,9 +135,8 @@ const AdminRoomManager = () => {
                     <MenuItem value="" disabled>
                         Select a user
                     </MenuItem>
-                    {allUsers
-                        .filter((user) => !users.some((u) => u._id === user._id)) // Exclude existing users
-                        .map((user) => (
+                    {allUsers.filter((user) => !users.some((u) => u._id === user._id))
+                    .map((user) => (
                             <MenuItem key={user._id} value={user._id}>
                                 {user.name}
                             </MenuItem>

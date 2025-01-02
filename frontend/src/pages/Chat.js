@@ -7,7 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MessageList from '../components/ChatList';
 import MessageInput from '../components/ChatInput';
 
-const socket = io(SOCKET_URL);
+export const socket = io(SOCKET_URL);
 
 const ChatRoom = () => {
     const { roomName } = useParams();
@@ -45,6 +45,8 @@ const ChatRoom = () => {
             );
         });
 
+        socket.on('added_user', (msg) => setMessages((prev) => [...prev, msg]));
+
         return () => {
             socket.off('previousMessages');
             socket.off('receive_message');
@@ -56,7 +58,12 @@ const ChatRoom = () => {
     const handleExitRoom = async () => {
         try {
             await API.post(`/chatrooms/${roomName}/exit`, { userId: userInfo._id });
-            socket.emit('leave_room', { room: roomName });
+            const msg = {
+                username: 'system',
+                content: `${userInfo.name} has left the room`,
+                room: roomName,
+            }
+            socket.emit('leave_room', { room: roomName, msg});
             navigate('/chatrooms');
         } catch (err) {
             console.error('Error exiting room:', err);
