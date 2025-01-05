@@ -56,7 +56,7 @@ The application is structured with a modern three-tier architecture:
 ### Steps
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/chat-application.git
+   git clone https://github.com/Muawia24/realtime_chat-app.git
    ```
 2. Navigate to the project directory:
    ```bash
@@ -108,6 +108,6 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## Contact
 For feedback or inquiries:
-- **Name**: [Ahmed Muawia]
-- **Email**: [amuawia666@gmail.com]
-- **Portfolio**: [](https://amuawia666.wixsite.com/muawia-portfolio/)
+- **Name**: Ahmed Muawia
+- **Email**: amuawia666@gmail.com
+- **Portfolio**: [Visit My portfolio](https://amuawia666.wixsite.com/muawia-portfolio/)
