@@ -1,24 +1,33 @@
-import React, { use } from 'react';
+import React from 'react';
 import { Box, Typography, IconButton, Menu, MenuItem } from '@mui/material';
 import API from '../utils/api';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 const MessageList = ({ messages, isAdmin, socket }) => {
-    const [dropdownVisible, setDropdownVisible] = React.useState(null);
+    const [anchorEl, setAnchorEl] = React.useState(null); // Anchor element for menu
+    const [selectedMessageId, setSelectedMessageId] = React.useState(null); // Tracks the selected message ID
     const user = JSON.parse(localStorage.getItem('userInfo')) || {};
 
-    const toggleDropdown = (messageId) =>
-        setDropdownVisible((prev) => (prev === messageId ? null : messageId));
+    const handleMenuOpen = (event, messageId) => {
+        setAnchorEl(event.currentTarget); // Set the clicked element as the anchor
+        setSelectedMessageId(messageId); // Track the message for which the menu is open
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null); // Close the menu
+        setSelectedMessageId(null); // Reset the selected message ID
+    };
 
     const deleteMessage = async (messageId) => {
         try {
-          await API.delete(`/messages/${messageId}`);
-          socket.emit('delete_message', messageId);
-          setDropdownVisible(null);
+            await API.delete(`/messages/${messageId}`);
+            socket.emit('delete_message', messageId); // Notify other clients
+            handleMenuClose(); // Close the menu
         } catch (error) {
-          console.error('Error deleting message:', error);
+            console.error('Error deleting message:', error);
         }
-      };
+    };
+
     return (
         <Box
             sx={{
@@ -63,19 +72,34 @@ const MessageList = ({ messages, isAdmin, socket }) => {
                         )}
                         {isAdmin && (
                             <>
-                                <IconButton onClick={() => toggleDropdown(msg._id)} size="small">
+                                {/* Three-dot Menu Button */}
+                                <IconButton
+                                    onClick={(event) => handleMenuOpen(event, msg._id)}
+                                    size="small"
+                                >
                                     <MoreVertIcon />
                                 </IconButton>
-                                {dropdownVisible === msg._id && (
-                                    <Menu
-                                        open
-                                        onClose={() => setDropdownVisible(null)}
+
+                                {/* Dropdown Menu */}
+                                <Menu
+                                    anchorEl={anchorEl} // Anchor the menu to the clicked button
+                                    open={Boolean(anchorEl && selectedMessageId === msg._id)} // Ensure the correct menu is open
+                                    onClose={handleMenuClose} // Close on outside click
+                                    anchorOrigin={{
+                                        vertical: 'bottom',
+                                        horizontal: 'right',
+                                    }}
+                                    transformOrigin={{
+                                        vertical: 'top',
+                                        horizontal: 'right',
+                                    }}
+                                >
+                                    <MenuItem
+                                        onClick={() => deleteMessage(selectedMessageId)}
                                     >
-                                        <MenuItem onClick={() => deleteMessage(msg._id)}>
-                                            Delete
-                                        </MenuItem>
-                                    </Menu>
-                                )}
+                                        Delete
+                                    </MenuItem>
+                                </Menu>
                             </>
                         )}
                     </Box>
