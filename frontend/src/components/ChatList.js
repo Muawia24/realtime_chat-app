@@ -56,9 +56,29 @@ const MessageList = ({ messages, isAdmin, socket }) => {
                             maxWidth: '70%',
                         }}
                     >
-                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                            {msg.sender === user._id ? 'You' : msg.username}
-                        </Typography>
+                        {/* Username and Three-Dot Menu */}
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginBottom: 1,
+                            }}
+                        >
+                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                {msg.sender === user._id ? 'You' : msg.username}
+                            </Typography>
+
+                            {isAdmin && (
+                                <IconButton
+                                    onClick={(event) => handleMenuOpen(event, msg._id)}
+                                    size="small"
+                                >
+                                    <MoreVertIcon />
+                                </IconButton>
+                            )}
+                        </Box>
+                        
                         <Typography variant="body1">{msg.content}</Typography>
                         {msg.fileUrl && (
                             <a
@@ -72,13 +92,7 @@ const MessageList = ({ messages, isAdmin, socket }) => {
                         )}
                         {isAdmin && (
                             <>
-                                {/* Three-dot Menu Button */}
-                                <IconButton
-                                    onClick={(event) => handleMenuOpen(event, msg._id)}
-                                    size="small"
-                                >
-                                    <MoreVertIcon />
-                                </IconButton>
+                               
 
                                 {/* Dropdown Menu */}
                                 <Menu
