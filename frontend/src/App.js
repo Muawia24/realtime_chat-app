@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ChatRoom from './pages/Chat';
 import ChatRooms from './pages/ChatRooms';
+import HomePage from './pages/Home';
 import AdminRoomManager from './pages/AddUserToRoom';
 import LogoutHandler from './pages/LogoutHandler';
 import { useContext } from 'react';
@@ -27,7 +28,7 @@ const App = () => {
                 <AppBar position="static">
                     <Toolbar>
                         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                            Real-Time Chat App
+                            ChatSpace
                         </Typography>
                         <Header user={user} />
                     </Toolbar>
@@ -37,6 +38,9 @@ const App = () => {
                 <Box sx={{ flexGrow: 1, paddingY: 3 }}>
                     <Container>
                         <Routes>
+                            {/* Home Page Route */}
+                            <Route path="/home" element={<HomePage />} />
+
                             {/* Public Routes */}
                             <Route
                                 path="/login"
@@ -50,15 +54,15 @@ const App = () => {
                             {/* Protected Routes */}
                             <Route
                                 path="/chatrooms"
-                                element={user ? <ChatRooms /> : <Navigate to="/login" />}
+                                element={user ? <ChatRooms /> : <Navigate to="/home" />}
                             />
                             <Route
                                 path="/chat/:roomName"
-                                element={user ? <ChatRoom /> : <Navigate to="/login" />}
+                                element={user ? <ChatRoom /> : <Navigate to="/home" />}
                             />
                             <Route
                                 path="/chat/:roomName/manage"
-                                element={user ? <AdminRoomManager /> : <Navigate to="/login" />}
+                                element={user ? <AdminRoomManager /> : <Navigate to="/home" />}
                             />
 
                             {/* Logout Route */}
@@ -67,7 +71,7 @@ const App = () => {
                             {/* Fallback Route */}
                             <Route
                                 path="*"
-                                element={<Navigate to={user ? "/chatrooms" : "/login"} />}
+                                element={<Navigate to={user ? "/chatrooms" : "/home"} />}
                             />
                         </Routes>
                     </Container>
@@ -76,7 +80,7 @@ const App = () => {
                 {/* Footer */}
                 <Box component="footer" sx={{ py: 2, textAlign: 'center', backgroundColor: '#f8f9fa' }}>
                     <Typography variant="body2" color="textSecondary">
-                        © 2024 Real-Time Chat App. All rights reserved.
+                        © 2024 ChatSpace. All rights reserved.
                     </Typography>
                 </Box>
             </Box>
