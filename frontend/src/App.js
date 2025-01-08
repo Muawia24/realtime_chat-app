@@ -8,9 +8,35 @@ import ChatRooms from './pages/ChatRooms';
 import HomePage from './pages/Home';
 import AdminRoomManager from './pages/AddUserToRoom';
 import LogoutHandler from './pages/LogoutHandler';
-import { useContext } from 'react';
+import { useContext, useEffect} from 'react';
+import { useLocation } from 'react-router-dom';
 import { AuthContext } from './context/AuthContext';
 import Header from './Header';
+
+const DynamicTitle = () => {
+    const location = useLocation();
+
+    useEffect(() => {
+        switch (location.pathname) {
+            case '/login':
+                document.title = 'Login - ChatSpace';
+                break;
+            case '/register':
+                document.title = 'Register - ChatSpace';
+                break;
+            case '/chatrooms':
+                document.title = 'ChatRooms - ChatSpace';
+                break;
+            case '/':
+                document.title = 'Welcome - ChatSpace';
+                break;
+            default:
+                document.title = 'ChatSpace - Real-Time Chat App';
+        }
+    }, [location]);
+
+    return null; // This component only handles side effects, so it renders nothing.
+};
 
 const App = () => {
     const { loading, user } = useContext(AuthContext); // Get the authenticated user
@@ -22,6 +48,7 @@ const App = () => {
 
     return (
         <Router>
+            <DynamicTitle />
             <CssBaseline /> {/* Resets default browser styling for a cleaner UI */}
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 {/* App Header */}
